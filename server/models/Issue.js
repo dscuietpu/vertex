@@ -1,0 +1,48 @@
+const mongoose = require('mongoose');
+
+const issueSchema = new mongoose.Schema(
+  {
+    imageUrl: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    latitude: {
+      type: Number,
+      required: true,
+    },
+    longitude: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['Pending', 'In Progress', 'Resolved'],
+      default: 'Pending',
+    },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Low',
+    },
+    // How many times this issue (or its duplicates) has been reported
+    reportCount: {
+      type: Number,
+      default: 1,
+    },
+    // If this record is a duplicate, points to the original issue
+    duplicateOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Issue',
+      default: null,
+    },
+  },
+  {
+    timestamps: true, // adds createdAt and updatedAt
+  }
+);
+
+module.exports = mongoose.model('Issue', issueSchema);
