@@ -35,12 +35,11 @@ function useInView(threshold = 0.2) {
 }
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ end, suffix = '', label, icon, started }) {
-  const count = useCounter(end, 2200, started);
+function StatCard({ label, icon }) {
   return (
     <div className="civic-stat-card">
       <div className="civic-stat-icon">{icon}</div>
-      <div className="civic-stat-number">{count.toLocaleString()}{suffix}</div>
+      <div className="civic-stat-number">—</div>
       <div className="civic-stat-label">{label}</div>
     </div>
   );
@@ -134,57 +133,57 @@ export default function LandingPage() {
     {
       icon: '🤖',
       title: 'AI Duplicate Detection',
-      description: 'Automatically detects repeated complaints using AI image and text matching, eliminating redundant reports and saving processing time.',
+      description: 'Repeated grievances are automatically identified using AI-based image and text matching, preventing redundant entries and streamlining official processing.',
     },
     {
       icon: '🏷️',
       title: 'Smart Categorization',
-      description: 'AI assigns the right department automatically based on complaint content — no manual tagging required.',
+      description: 'Each submission is automatically routed to the appropriate government department based on complaint content — no manual intervention required.',
     },
     {
       icon: '📡',
       title: 'Real-Time Status Tracking',
-      description: 'Track your complaint progress step-by-step with live updates and transparent timelines.',
+      description: 'Citizens can monitor the progress of their grievance at every stage through a transparent, publicly accessible tracking system.',
     },
     {
       icon: '📍',
       title: 'Geo-tagged Complaints',
-      description: 'Attach precise GPS location to complaints so authorities can respond faster and with full context.',
+      description: 'GPS coordinates are attached to each report, enabling field officials to locate and respond to issues with greater accuracy.',
     },
     {
       icon: '📊',
       title: 'Authority Dashboard',
-      description: 'Government officials get a powerful analytics dashboard to efficiently manage, prioritize, and resolve complaints.',
+      description: 'Designated government officers access a dedicated dashboard to manage, prioritize, and resolve incoming grievances efficiently.',
     },
     {
       icon: '🔔',
       title: 'Citizen Notifications',
-      description: 'Stay informed with instant push and email notifications every time your complaint status changes.',
+      description: 'Registered citizens receive timely status updates whenever their complaint is reviewed, escalated, or resolved by the concerned authority.',
     },
   ];
 
   const steps = [
-    { number: '01', icon: '📸', title: 'Upload Complaint', description: 'Add a photo and description of the civic issue from anywhere, on any device.' },
-    { number: '02', icon: '🤖', title: 'AI Processing', description: 'Our AI engine checks for duplicates and auto-categorizes the complaint to the right department.' },
-    { number: '03', icon: '🏛️', title: 'Authority Review', description: 'The assigned department verifies and acknowledges the reported issue immediately.' },
-    { number: '04', icon: '✅', title: 'Resolution Tracking', description: 'Citizens track real-time progress until the issue is fully resolved and closed.' },
+    { number: '01', icon: '📸', title: 'Submit Grievance', description: 'Upload a photo and description of the civic issue. Submissions are accepted from any device, anywhere.' },
+    { number: '02', icon: '🤖', title: 'AI Processing', description: 'The AI system checks for duplicate reports and automatically routes the complaint to the relevant government department.' },
+    { number: '03', icon: '🏛️', title: 'Official Review', description: 'The designated authority verifies and acknowledges the reported issue, initiating the resolution process.' },
+    { number: '04', icon: '✅', title: 'Resolution & Closure', description: 'Citizens track official progress in real time until the issue is resolved and formally closed.' },
   ];
 
   const testimonials = [
     {
-      name: 'Priya Sharma',
+      name: '—',
       role: 'Citizen, Bangalore',
       text: 'Submitting complaints has never been easier. I reported a broken streetlight and it was fixed within 3 days. Incredible!',
       avatar: '👩',
     },
     {
-      name: 'Raj Kumar',
+      name: '—',
       role: 'Municipal Officer, Delhi',
       text: 'The AI duplicate detection saves us hours of manual work every day. Our team can focus on actually solving problems now.',
       avatar: '👨‍💼',
     },
     {
-      name: 'Anita Desai',
+      name: '—',
       role: 'Ward Councilor, Mumbai',
       text: 'The analytics dashboard gives us a clear picture of city-wide issues. CivicAI has transformed how we serve our community.',
       avatar: '👩‍💼',
@@ -203,7 +202,7 @@ export default function LandingPage() {
 
           {/* Desktop links */}
           <div className="landing-nav__links">
-            {['features', 'how-it-works', 'stats', 'about', 'contact'].map((id) => (
+            {['features', 'how-it-works', 'stats', 'about'].map((id) => (
               <button key={id} className="landing-nav__link" onClick={() => scrollTo(id)}>
                 {id === 'how-it-works' ? 'How It Works' : id.charAt(0).toUpperCase() + id.slice(1)}
               </button>
@@ -211,6 +210,7 @@ export default function LandingPage() {
           </div>
 
           <div className="landing-nav__actions">
+            <Link to="/report" className="landing-nav__report-btn">🚀 Report a Complaint</Link>
             <Link to="/login/citizen" className="landing-nav__login-btn">Login</Link>
           </div>
 
@@ -225,11 +225,12 @@ export default function LandingPage() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="landing-nav__mobile">
-            {['features', 'how-it-works', 'stats', 'about', 'contact'].map((id) => (
+            {['features', 'how-it-works', 'stats', 'about'].map((id) => (
               <button key={id} className="landing-nav__mobile-link" onClick={() => scrollTo(id)}>
                 {id === 'how-it-works' ? 'How It Works' : id.charAt(0).toUpperCase() + id.slice(1)}
               </button>
             ))}
+            <Link to="/report" className="landing-nav__mobile-cta">🚀 Report a Complaint</Link>
             <Link to="/login/citizen" className="landing-nav__mobile-cta">Login</Link>
           </div>
         )}
@@ -245,35 +246,32 @@ export default function LandingPage() {
         <div className="landing-hero__content">
           <div className="landing-hero__text">
             <div className="landing-hero__badge">
-              <span>🤖</span> Powered by Artificial Intelligence
+              <span>🏛️</span> Government Grievance Redressal Portal
             </div>
             <h1 className="landing-hero__headline">
-              Report Issues <span className="landing-hero__highlight">Smarter.</span>
-              <br />Resolve Them <span className="landing-hero__highlight">Faster</span> with AI.
+              Your Grievance. <span className="landing-hero__highlight">Heard.</span>
+              <br />Resolved <span className="landing-hero__highlight">Transparently</span> with AI.
             </h1>
             <p className="landing-hero__subheadline">
-              Upload complaints, detect duplicates automatically, and track resolutions in real time. CivicAI connects citizens with authorities for a smarter, more responsive city.
+              An AI-assisted government portal for citizens to report civic issues, track official responses, and hold authorities accountable — transparently and efficiently.
             </p>
             <div className="landing-hero__actions">
-              <Link to="/report" className="landing-btn landing-btn--primary">
-                <span>🚀</span> Report a Complaint
-              </Link>
               <Link to="/login/citizen" className="landing-btn landing-btn--secondary">
                 <span>🔑</span> Login
               </Link>
             </div>
             <div className="landing-hero__trust">
               <div className="landing-hero__trust-item">
-                <span className="landing-hero__trust-icon">✅</span>
-                <span>Free to use</span>
+                <span className="landing-hero__trust-icon">🆓</span>
+                <span>Free for All Citizens</span>
               </div>
               <div className="landing-hero__trust-item">
                 <span className="landing-hero__trust-icon">🔒</span>
-                <span>Secure & Private</span>
+                <span>Secure & Confidential</span>
               </div>
               <div className="landing-hero__trust-item">
-                <span className="landing-hero__trust-icon">⚡</span>
-                <span>AI-Powered</span>
+                <span className="landing-hero__trust-icon">🏛️</span>
+                <span>Official Portal</span>
               </div>
             </div>
           </div>
@@ -291,10 +289,10 @@ export default function LandingPage() {
       <section id="features" className="landing-section">
         <div className="landing-section__inner">
           <div className="landing-section__header">
-            <div className="landing-section__label">Features</div>
-            <h2 className="landing-section__title">Everything You Need to Make Cities Better</h2>
+            <div className="landing-section__label">Capabilities</div>
+            <h2 className="landing-section__title">Built for Transparent, Accountable Governance</h2>
             <p className="landing-section__subtitle">
-              From AI-powered processing to real-time dashboards — CivicAI gives citizens and authorities all the tools they need.
+              From AI-assisted processing to real-time tracking — this portal equips citizens and government officials with the tools needed for efficient grievance redressal.
             </p>
           </div>
           <div className="civic-features-grid">
@@ -310,9 +308,9 @@ export default function LandingPage() {
         <div className="landing-section__inner">
           <div className="landing-section__header">
             <div className="landing-section__label">Process</div>
-            <h2 className="landing-section__title">How CivicAI Works</h2>
+            <h2 className="landing-section__title">How the Portal Works</h2>
             <p className="landing-section__subtitle">
-              A seamless, AI-driven process from submission to resolution — transparent every step of the way.
+              A structured, AI-assisted process — from grievance submission to official resolution — with full transparency at every stage.
             </p>
           </div>
           <div className="civic-steps-container">
@@ -330,17 +328,17 @@ export default function LandingPage() {
       <section id="stats" className="landing-section landing-section--dark" ref={statsRef}>
         <div className="landing-section__inner">
           <div className="landing-section__header landing-section__header--light">
-            <div className="landing-section__label landing-section__label--light">Impact</div>
-            <h2 className="landing-section__title landing-section__title--light">Making a Real Difference</h2>
+            <div className="landing-section__label landing-section__label--light">Portal Scope</div>
+            <h2 className="landing-section__title landing-section__title--light">Designed for Scale Across India</h2>
             <p className="landing-section__subtitle landing-section__subtitle--light">
-              Numbers that show how CivicAI is transforming urban governance across India.
+              This portal is being developed to serve citizens across municipalities, districts, and urban local bodies nationwide.
             </p>
           </div>
           <div className="civic-stats-grid">
-            <StatCard end={12480} label="Complaints Resolved" icon="✅" started={statsInView} />
-            <StatCard end={320} label="Active Authorities" icon="🏛️" started={statsInView} />
-            <StatCard end={48} label="Cities Covered" icon="🌆" started={statsInView} />
-            <StatCard end={94} suffix="%" label="Citizen Satisfaction" icon="⭐" started={statsInView} />
+            <StatCard label="Grievances Addressed" icon="✅" />
+            <StatCard label="Authorities Onboarded" icon="🏛️" />
+            <StatCard label="Cities in Scope" icon="🌆" />
+            <StatCard label="Citizen Satisfaction" icon="⭐" />
           </div>
         </div>
       </section>
@@ -349,10 +347,10 @@ export default function LandingPage() {
       <section id="about" className="landing-section">
         <div className="landing-section__inner">
           <div className="landing-section__header">
-            <div className="landing-section__label">Testimonials</div>
-            <h2 className="landing-section__title">Heard from Our Community</h2>
+            <div className="landing-section__label">About</div>
+            <h2 className="landing-section__title">Why This Portal Exists</h2>
             <p className="landing-section__subtitle">
-              Citizens and government officials share how CivicAI changed their experience.
+              Hear from citizens and officials on why a transparent, AI-powered grievance system is essential for modern governance.
             </p>
           </div>
           <div className="civic-testimonials-grid">
@@ -371,10 +369,10 @@ export default function LandingPage() {
             <div className="cta-shape cta-shape--2" />
           </div>
           <div className="landing-cta__content">
-            <h2 className="landing-cta__title">Make Your City Smarter Today</h2>
-            <p className="landing-cta__subtitle">Join thousands of citizens and authorities already using CivicAI.</p>
+            <h2 className="landing-cta__title">Be Part of a Smarter Governance System</h2>
+            <p className="landing-cta__subtitle">Register your grievance or log in as an authority to begin the redressal process.</p>
             <div className="landing-cta__actions">
-              <Link to="/report" className="landing-btn landing-btn--cta-primary">🚀 Get Started</Link>
+              <Link to="/report" className="landing-btn landing-btn--cta-primary">🚀 Submit a Grievance</Link>
               <Link to="/login/authority" className="landing-btn landing-btn--cta-secondary">🏛️ Authority Login</Link>
             </div>
           </div>
@@ -382,14 +380,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer id="contact" className="landing-footer">
+      <footer className="landing-footer">
         <div className="landing-footer__inner">
           <div className="landing-footer__brand">
             <div className="landing-footer__logo">
               <span>🏙️</span> CivicAI
             </div>
             <p className="landing-footer__tagline">
-              Smart Complaint Management System — Bridging citizens and authorities with the power of AI.
+              Government Grievance Redressal Portal — Bridging citizens and public authorities through transparent, AI-assisted governance.
             </p>
             <div className="landing-footer__socials">
               <a href="#" className="landing-footer__social" aria-label="Twitter">𝕏</a>
@@ -413,17 +411,12 @@ export default function LandingPage() {
               <Link to="/login/citizen" className="landing-footer__link">Citizen Login</Link>
               <Link to="/login/authority" className="landing-footer__link">Authority Login</Link>
             </div>
-            <div className="landing-footer__col">
-              <h4 className="landing-footer__col-title">Contact</h4>
-              <span className="landing-footer__info">📧 support@civicai.in</span>
-              <span className="landing-footer__info">📞 1800-CIVIC-AI</span>
-              <span className="landing-footer__info">🏢 New Delhi, India</span>
-            </div>
+            
           </div>
         </div>
         <div className="landing-footer__bottom">
-          <span>© 2026 CivicAI. All rights reserved.</span>
-          <span>Built with ❤️ for smarter cities</span>
+          
+          <span>Built for smarter cities</span>
         </div>
       </footer>
     </div>
