@@ -35,8 +35,18 @@ async function createIssue(req, res) {
 
     // 1. Generate AI description, priority, and category via single LLaMA 4 call
     console.log('🤖 Generating AI analysis...');
-    const { description, priority, category } = await analyseImage(imagePath);
-    console.log(`📝 Result: "${description}" | Priority: ${priority} | Category: ${category}`);
+    const { isCivicIssue, description, priority, category } = await analyseImage(imagePath);
+    console.log(`📝 Result: "${description}" | Priority: ${priority} | Category: ${category} | Valid: ${isCivicIssue}`);
+
+    if (!isCivicIssue) {
+      console.log('❌ Image rejected by AI as non-civic issue.');
+      // Optionally delete the uploaded file if we don't want to keep it
+      // require('fs').unlinkSync(imagePath); 
+      return res.status(400).json({ 
+        error: 'Image rejected: Not a valid civic issue.', 
+        details: description 
+      });
+    }
 
     // 2. Check for duplicates
     console.log('🔍 Checking for duplicates...');

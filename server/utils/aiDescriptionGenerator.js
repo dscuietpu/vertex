@@ -31,7 +31,8 @@ Analyse the image and respond ONLY with a valid JSON object — no markdown, no 
 
 Schema:
 {
-  "description": "<one concise sentence, max 20 words, stating the issue, location type, and safety impact>",
+  "isCivicIssue": <boolean - true if the image depicts a valid civic/infrastructure problem, false if it is a selfie, meme, perfectly clean road, blank, or completely irrelevant>,
+  "description": "<one concise sentence, max 20 words, stating the issue. If isCivicIssue is false, state why it is invalid>",
   "priority": "<exactly one of: High | Medium | Low>",
   "category": "<exactly one of: Road & Traffic | Water & Drainage | Electricity | Sanitation | Public Property | Other>"
 }
@@ -94,6 +95,8 @@ function mockFromFilename(imagePath) {
 
 // ── Validate & sanitise AI JSON response ────────────────────────────────────
 function validateAndFix(parsed) {
+  const isCivicIssue = typeof parsed.isCivicIssue === 'boolean' ? parsed.isCivicIssue : true;
+
   const description = typeof parsed.description === 'string' && parsed.description.trim()
     ? parsed.description.trim()
     : null;
@@ -106,7 +109,7 @@ function validateAndFix(parsed) {
     ? parsed.category
     : 'Other';
 
-  return { description, priority, category };
+  return { isCivicIssue, description, priority, category };
 }
 
 // ── Groq inference call ──────────────────────────────────────────────────────
@@ -163,11 +166,11 @@ async function analyseWithGroq(imagePath) {
     throw new Error(`Groq returned non-JSON: ${raw}`);
   }
 
-  const { description, priority, category } = validateAndFix(parsed);
+  const { isCivicIssue, description, priority, category } = validateAndFix(parsed);
 
   if (!description) throw new Error('Groq returned empty description');
 
-  return { description, priority, category };
+  return { isCivicIssue, description, priority, category };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -189,6 +192,7 @@ async function analyseImage(imagePath) {
 
   console.log('🎭 Smart mock AI active (no API key needed)');
   const mock = mockFromFilename(imagePath);
+  mock.isCivicIssue = true; // All mock items are valid civic issues by definition
   console.log(`📝 Mock → priority: ${mock.priority} | category: ${mock.category}`);
   console.log(`📝 Mock description: "${mock.description}"`);
   return mock;

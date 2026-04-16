@@ -89,7 +89,8 @@ export default function UploadPage() {
       clearImage();
       setLocation(null);
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || 'Submission failed. Please try again.';
+      let msg = err.response?.data?.message || err.response?.data?.error || 'Submission failed. Please try again.';
+      if (err.response?.data?.details) msg += ` (${err.response.data.details})`;
       // 409 no longer used — but keep for safety
       if (err.response?.status === 409) {
         setResult(err.response.data);
