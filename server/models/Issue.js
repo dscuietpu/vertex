@@ -28,6 +28,11 @@ const issueSchema = new mongoose.Schema(
       enum: ['Low', 'Medium', 'High'],
       default: 'Low',
     },
+    category: {
+      type: String,
+      enum: ['Road & Traffic', 'Water & Drainage', 'Electricity', 'Sanitation', 'Public Property', 'Other'],
+      default: 'Other',
+    },
     // How many times this issue (or its duplicates) has been reported
     reportCount: {
       type: Number,

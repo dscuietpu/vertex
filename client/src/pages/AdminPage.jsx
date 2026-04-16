@@ -17,23 +17,15 @@ function priorityScore(issue) {
   return (issue.reportCount || 1) * (PRIORITY_WEIGHT[issue.priority] || 1);
 }
 
-// ── Category clustering from description keywords ─────────────────────────────
-const CLUSTER_RULES = [
-  { label: 'Road & Traffic',    icon: '🛣️',  keywords: ['road', 'pothole', 'street', 'traffic', 'sinkhole', 'pavement', 'footpath', 'accident'] },
-  { label: 'Water & Drainage',  icon: '💧',  keywords: ['water', 'drain', 'sewage', 'flood', 'leakage', 'pipe', 'overflow', 'clogged', 'blocked'] },
-  { label: 'Electricity',       icon: '⚡',  keywords: ['electricity', 'electrical', 'wire', 'light', 'streetlight', 'power', 'hazard', 'exposed'] },
-  { label: 'Sanitation',        icon: '🗑️',  keywords: ['garbage', 'waste', 'litter', 'dump', 'debris', 'trash', 'sanitation'] },
-  { label: 'Public Property',   icon: '🏗️',  keywords: ['broken', 'vandalism', 'graffiti', 'crack', 'collapse', 'overgrown', 'damage', 'wall'] },
-];
-const CLUSTER_OTHER = { label: 'Other Issues', icon: '📋' };
-
-function getCluster(description = '') {
-  const lower = description.toLowerCase();
-  for (const cluster of CLUSTER_RULES) {
-    if (cluster.keywords.some((kw) => lower.includes(kw))) return cluster;
-  }
-  return CLUSTER_OTHER;
-}
+// ── Category mapping (Icons corresponding to AI categories) ─────────────────
+const CATEGORY_MAP = {
+  'Road & Traffic':   { label: 'Road & Traffic',   icon: '🛣️' },
+  'Water & Drainage': { label: 'Water & Drainage', icon: '💧' },
+  'Electricity':      { label: 'Electricity',      icon: '⚡' },
+  'Sanitation':       { label: 'Sanitation',       icon: '🗑️' },
+  'Public Property':  { label: 'Public Property',  icon: '🏗️' },
+  'Other':            { label: 'Other Issues',     icon: '📋' },
+};
 
 // ── Priority Badge ────────────────────────────────────────────────────────────
 function PriorityBadge({ priority }) {
@@ -217,7 +209,8 @@ export default function AdminPage() {
   const clusters = useMemo(() => {
     const map = new Map();
     for (const issue of sorted) {
-      const cluster = getCluster(issue.description);
+      const catKey = issue.category || 'Other';
+      const cluster = CATEGORY_MAP[catKey] || CATEGORY_MAP['Other'];
       if (!map.has(cluster.label)) map.set(cluster.label, { ...cluster, issues: [] });
       map.get(cluster.label).issues.push(issue);
     }

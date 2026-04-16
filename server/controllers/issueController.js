@@ -1,8 +1,7 @@
 const path = require('path');
 const Issue = require('../models/Issue');
-const { generateDescription } = require('../utils/aiDescriptionGenerator');
+const { analyseImage } = require('../utils/aiDescriptionGenerator');
 const { checkDuplicate } = require('../utils/duplicateDetector');
-const { classifyPriority } = require('../utils/priorityClassifier');
 
 // ─── POST /api/issues ─────────────────────────────────────────────────────────
 /**
@@ -34,10 +33,10 @@ async function createIssue(req, res) {
     const imageUrl = `/uploads/${req.file.filename}`;
     const imagePath = path.join(__dirname, '..', 'uploads', req.file.filename);
 
-    // 1. Generate AI description
-    console.log('🤖 Generating AI description...');
-    const description = await generateDescription(imagePath);
-    console.log(`📝 Description: "${description}"`);
+    // 1. Generate AI description, priority, and category via single LLaMA 4 call
+    console.log('🤖 Generating AI analysis...');
+    const { description, priority, category } = await analyseImage(imagePath);
+    console.log(`📝 Result: "${description}" | Priority: ${priority} | Category: ${category}`);
 
     // 2. Check for duplicates
     console.log('🔍 Checking for duplicates...');
@@ -59,6 +58,7 @@ async function createIssue(req, res) {
         latitude: lat,
         longitude: lon,
         priority: matchedIssue.priority,
+        category: matchedIssue.category || category,
         status: matchedIssue.status,
         duplicateOf: matchedIssue._id,
         reportCount: 1,
@@ -78,17 +78,14 @@ async function createIssue(req, res) {
       });
     }
 
-    // 3. Classify priority
-    const priority = classifyPriority(description);
-    console.log(`⚡ Priority: ${priority}`);
-
-    // 4. Save to MongoDB
+    // 3. Save to MongoDB
     const issue = new Issue({
       imageUrl,
       description,
       latitude: lat,
       longitude: lon,
       priority,
+      category,
       status: 'Pending',
       reportCount: 1,
     });
