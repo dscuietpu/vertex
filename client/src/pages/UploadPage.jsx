@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { Camera, MapPin, Send, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { submitIssue } from '../utils/api';
 import Spinner from '../components/Spinner';
 
@@ -112,8 +113,8 @@ export default function UploadPage() {
   if (result && !result.duplicate) {
     return (
       <div className="max-w-lg mx-auto mt-16 p-8 bg-white rounded-2xl shadow-lg text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">✅</span>
+        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Issue Reported!</h2>
         <p className="text-slate-500 mb-4">{result.message}</p>
@@ -123,8 +124,8 @@ export default function UploadPage() {
           <p className="text-sm"><span className="font-semibold text-slate-600">Status:</span> {result.issue?.status}</p>
           <p className="text-sm">
             <span className="font-semibold text-slate-600">Times Reported:</span>{' '}
-            <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
-              🔁 {result.issue?.reportCount ?? 1}
+            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-md border border-slate-200">
+              {result.issue?.reportCount ?? 1} submissions
             </span>
           </p>
         </div>
@@ -144,17 +145,16 @@ export default function UploadPage() {
     const original = result.originalIssue;
     return (
       <div className="max-w-lg mx-auto mt-16 p-8 bg-white rounded-2xl shadow-lg text-center">
-        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">⚠️</span>
+        <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100">
+          <AlertTriangle className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Already Reported!</h2>
         <p className="text-slate-500 mb-1">{result.message}</p>
         <p className="text-slate-400 text-sm mb-5">Your report has been counted — this issue is now marked as reported by multiple people.</p>
 
-        {/* Report count badge */}
         <div className="flex items-center justify-center gap-2 mb-5">
-          <span className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 text-sm font-bold px-4 py-2 rounded-full border border-amber-200">
-            🔁 Reported <span className="text-lg">{count}</span> time{count !== 1 ? 's' : ''}
+          <span className="inline-flex items-center gap-2 bg-slate-50 text-slate-700 text-sm font-semibold px-4 py-2 rounded-md border border-slate-200 shadow-sm">
+            Reported <span className="text-lg">{count}</span> time{count !== 1 ? 's' : ''}
           </span>
         </div>
 
@@ -181,15 +181,18 @@ export default function UploadPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Report a Civic Issue</h1>
-        <p className="text-slate-500">Upload a photo and our AI will analyze and categorize the problem automatically.</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Report a Civic Issue</h1>
+        <p className="text-slate-500 text-sm max-w-md mx-auto">Upload a clear photo and we'll handle the rest, from categorization to tracking.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
         {/* ── Image Upload Zone ── */}
         <div className="p-6 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-700 mb-4">📸 Upload Image</h2>
+          <h2 className="flex items-center gap-2 font-semibold text-slate-800 mb-4 tracking-tight">
+            <Camera className="w-5 h-5 text-slate-400" />
+            Issue Photograph
+          </h2>
 
           {!preview ? (
             <div
@@ -201,9 +204,9 @@ export default function UploadPage() {
                 isDragging ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50'
               }`}
             >
-              <p className="text-4xl mb-3">🖼️</p>
-              <p className="font-medium text-slate-600">Drag & drop your image here</p>
-              <p className="text-sm text-slate-400 mt-1">or click to browse — JPG, PNG, WebP up to 10MB</p>
+              <Camera className="w-10 h-10 mx-auto text-slate-300 mb-3 group-hover:text-blue-500 transition-colors" />
+              <p className="font-medium text-slate-700">Drag & drop your image here</p>
+              <p className="text-sm text-slate-500 mt-1">or click to browse from device</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -224,7 +227,7 @@ export default function UploadPage() {
                 onClick={clearImage}
                 className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm shadow transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
               <p className="text-xs text-slate-400 mt-2 text-center">{image?.name}</p>
             </div>
@@ -233,7 +236,10 @@ export default function UploadPage() {
 
         {/* ── Location ── */}
         <div className="p-6 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-700 mb-4">📍 Your Location</h2>
+          <h2 className="flex items-center gap-2 font-semibold text-slate-800 mb-4 tracking-tight">
+            <MapPin className="w-5 h-5 text-slate-400" />
+            Location Data
+          </h2>
           {location ? (
             <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-4">
               <div>
@@ -256,28 +262,30 @@ export default function UploadPage() {
               onClick={captureLocation}
               className="w-full border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl p-4 text-center transition hover:bg-blue-50"
             >
-              <p className="text-2xl mb-1">📡</p>
-              <p className="font-medium text-slate-600">Click to capture GPS location</p>
-              <p className="text-xs text-slate-400 mt-1">Allow location access when prompted</p>
+              <MapPin className="w-8 h-8 mx-auto text-slate-300 mb-2 group-hover:text-blue-500 transition-colors" />
+              <p className="font-medium text-slate-700">Fetch precise coordinates</p>
+              <p className="text-xs text-slate-500 mt-1">We need location access to direct field teams</p>
             </button>
           )}
           {locationError && (
-            <p className="text-red-500 text-sm mt-2">⚠️ {locationError}</p>
+            <p className="text-red-500 text-sm mt-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> {locationError}
+            </p>
           )}
         </div>
 
-        {/* ── AI Info Banner ── */}
-        <div className="px-6 py-4 bg-blue-50 border-b border-slate-100">
-          <p className="text-xs text-blue-600">
-            🤖 <span className="font-semibold">AI-Powered:</span> Our system will automatically generate a description, detect duplicates, and classify priority upon submission.
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+          <p className="text-xs text-slate-500 leading-relaxed">
+            By submitting, our automated review system will assess the issue severity and dispatch the details to the appropriate local authority.
           </p>
         </div>
 
         {/* ── Submit ── */}
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-3 rounded-xl text-sm bg-red-50 text-red-600 border border-red-200">
-              ❌ {error}
+            <div className="mb-4 p-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-100 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -289,10 +297,13 @@ export default function UploadPage() {
             {loading ? (
               <>
                 <Spinner size="sm" />
-                <span>Analyzing with AI...</span>
+                <span>Processing Upload...</span>
               </>
             ) : (
-              '🚀 Submit Issue Report'
+              <>
+                <Send className="w-5 h-5 mr-1" />
+                Submit Report
+              </>
             )}
           </button>
 

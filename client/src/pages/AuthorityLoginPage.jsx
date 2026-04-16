@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function AuthorityLoginPage() {
   const [form, setForm] = useState({ authorityId: '', password: '' });
@@ -11,6 +12,9 @@ export default function AuthorityLoginPage() {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  const navigate = useNavigate();
+  const { updateUser } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -19,10 +23,33 @@ export default function AuthorityLoginPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.authorityId, password: form.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      // Verify this account has GOV role
+      if (data.user?.role !== 'GOV') {
+        throw new Error('Access denied. This portal is for government officials only.');
+      }
+
+      // Store token and user data
+      localStorage.setItem('token', data.token);
+      updateUser(data.user);
+
+      // Redirect to authority admin dashboard
+      navigate('/admin', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      setError('Authentication not yet configured. Please connect your auth backend.');
-    }, 1200);
+    }
   };
 
   return (

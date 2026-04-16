@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function CitizenLoginPage() {
   const [form, setForm] = useState({ email: '', password: '', remember: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { updateUser } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,11 +22,39 @@ export default function CitizenLoginPage() {
       return;
     }
     setLoading(true);
-    // TODO: integrate with auth API
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        // Distinguish "not found" vs "wrong password"
+        throw new Error(
+          data.error?.toLowerCase().includes('invalid')
+            ? 'No account found with this email. Please register first.'
+            : data.error || 'Login failed'
+        );
+      }
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      // Ensure role is Citizen
+      if (data.user?.role !== 'Citizen') {
+        throw new Error('This account is not a citizen account. Use the Authority login page.');
+      }
+
+      // Persist token + sync AuthContext (Navbar updates instantly)
+      localStorage.setItem('token', data.token);
+      updateUser(data.user);
+
+      navigate('/profile', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      setError('Authentication not yet configured. Please connect your auth backend.');
-    }, 1200);
+    }
   };
 
   return (
@@ -43,20 +74,6 @@ export default function CitizenLoginPage() {
           <div className="auth-panel__tagline">
             <h2>Your voice shapes your city.</h2>
             <p>Join thousands of citizens driving change with AI-powered complaint management.</p>
-          </div>
-          <div className="auth-panel__stats">
-            <div className="auth-panel__stat">
-              <span className="auth-panel__stat-num">12K+</span>
-              <span className="auth-panel__stat-label">Issues Resolved</span>
-            </div>
-            <div className="auth-panel__stat">
-              <span className="auth-panel__stat-num">48</span>
-              <span className="auth-panel__stat-label">Cities</span>
-            </div>
-            <div className="auth-panel__stat">
-              <span className="auth-panel__stat-num">94%</span>
-              <span className="auth-panel__stat-label">Satisfaction</span>
-            </div>
           </div>
         </div>
       </div>

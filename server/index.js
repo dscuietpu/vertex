@@ -5,21 +5,27 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 const issueRoutes = require('./routes/issueRoutes');
-
+const authRoutes = require('./routes/authRoutes');
+const grievanceRoutes = require('./routes/grievanceRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const govRoutes = require('./routes/govRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
+app.use('/api/grievances', grievanceRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/gov', govRoutes);
 app.use('/api/issues', issueRoutes);
-
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

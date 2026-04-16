@@ -18,9 +18,24 @@ const issueSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    title: {
+      type: String,
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     status: {
       type: String,
-      enum: ['Pending', 'In Progress', 'Resolved'],
+      enum: ['Pending', 'In Progress', 'Resolved', 'Rejected'],
       default: 'Pending',
     },
     priority: {

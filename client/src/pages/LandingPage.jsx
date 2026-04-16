@@ -164,7 +164,7 @@ export default function LandingPage() {
 
   const steps = [
     { number: '01', icon: '📸', title: 'Submit Grievance', description: 'Upload a photo and description of the civic issue. Submissions are accepted from any device, anywhere.' },
-    { number: '02', icon: '🤖', title: 'AI Processing', description: 'The AI system checks for duplicate reports and automatically routes the complaint to the relevant government department.' },
+    { number: '02', icon: '🤖', title: 'AI Processing ', description: 'The AI system generates Description based on the image submission and checks for duplicate reports and prioritizes the submitted issues to action.' },
     { number: '03', icon: '🏛️', title: 'Official Review', description: 'The designated authority verifies and acknowledges the reported issue, initiating the resolution process.' },
     { number: '04', icon: '✅', title: 'Resolution & Closure', description: 'Citizens track official progress in real time until the issue is resolved and formally closed.' },
   ];
@@ -389,11 +389,7 @@ export default function LandingPage() {
             <p className="landing-footer__tagline">
               Government Grievance Redressal Portal — Bridging citizens and public authorities through transparent, AI-assisted governance.
             </p>
-            <div className="landing-footer__socials">
-              <a href="#" className="landing-footer__social" aria-label="Twitter">𝕏</a>
-              <a href="#" className="landing-footer__social" aria-label="LinkedIn">in</a>
-              <a href="#" className="landing-footer__social" aria-label="GitHub">⌥</a>
-            </div>
+            
           </div>
 
           <div className="landing-footer__links">

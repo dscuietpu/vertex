@@ -25,7 +25,7 @@ const VALID_CATEGORIES = [
   'Other',
 ];
 
-// ── Structured prompt sent to LLaMA 4 ────────────────────────────────────────
+//Structured prompt sent to LLaMA 4
 const SYSTEM_PROMPT = `You are a civic infrastructure analyst for a government grievance portal.
 Analyse the image and respond ONLY with a valid JSON object — no markdown, no explanation.
 

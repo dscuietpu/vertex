@@ -16,7 +16,7 @@ async function createIssue(req, res) {
       return res.status(400).json({ error: 'Image file is required' });
     }
 
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, title, tags } = req.body;
 
     if (!latitude || !longitude) {
       return res.status(400).json({ error: 'Location (latitude & longitude) is required' });
@@ -65,6 +65,8 @@ async function createIssue(req, res) {
       const duplicateRecord = new Issue({
         imageUrl,
         description,
+        title: title || matchedIssue.title,
+        tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : matchedIssue.tags,
         latitude: lat,
         longitude: lon,
         priority: matchedIssue.priority,
@@ -72,6 +74,7 @@ async function createIssue(req, res) {
         status: matchedIssue.status,
         duplicateOf: matchedIssue._id,
         reportCount: 1,
+        createdBy: req.user ? req.user.userId : null,
       });
       await duplicateRecord.save();
 
@@ -92,12 +95,15 @@ async function createIssue(req, res) {
     const issue = new Issue({
       imageUrl,
       description,
+      title: title || '',
+      tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
       latitude: lat,
       longitude: lon,
       priority,
       category,
       status: 'Pending',
       reportCount: 1,
+      createdBy: req.user ? req.user.userId : null,
     });
 
     await issue.save();
@@ -130,13 +136,42 @@ async function getAllIssues(req, res) {
     }
 
     if (priority && priority !== 'All') filter.priority = priority;
-    if (status && status !== 'All') filter.status = status;
+    if (status   && status   !== 'All') filter.status   = status;
     if (search) {
-      filter.description = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { description: { $regex: search, $options: 'i' } },
+        { title:       { $regex: search, $options: 'i' } },
+      ];
     }
 
-    const issues = await Issue.find(filter).sort({ reportCount: -1, createdAt: -1 });
-    return res.json({ issues, total: issues.length });
+    const issues = await Issue.find(filter)
+      .sort({ reportCount: -1, createdAt: -1 })
+      .populate('createdBy', 'name email profileDetails');
+
+    // ── Fetch all duplicate records linked to these originals ──────────────────
+    const originalIds = issues.map(i => i._id);
+    const duplicates  = await Issue.find(
+      { duplicateOf: { $in: originalIds } },
+      'duplicateOf createdBy'
+    ).populate('createdBy', 'name email profileDetails');
+
+    // Build map: originalId → [extra reporters]
+    const dupReportersMap = {};
+    for (const d of duplicates) {
+      const key = d.duplicateOf.toString();
+      if (!dupReportersMap[key]) dupReportersMap[key] = [];
+      if (d.createdBy) dupReportersMap[key].push(d.createdBy);
+    }
+
+    // Attach reporters array (original citizen + all duplicate reporters)
+    const result = issues.map(issue => {
+      const obj = issue.toObject();
+      const extras = dupReportersMap[issue._id.toString()] || [];
+      obj.reporters = issue.createdBy ? [issue.createdBy, ...extras] : extras;
+      return obj;
+    });
+
+    return res.json({ issues: result, total: result.length });
   } catch (error) {
     console.error('❌ getAllIssues error:', error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -152,12 +187,15 @@ async function updateIssueStatus(req, res) {
     const { id } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['Pending', 'In Progress', 'Resolved'];
+    const validStatuses = ['Pending', 'In Progress', 'Resolved', 'Rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: `Status must be one of: ${validStatuses.join(', ')}` });
     }
 
-    const issue = await Issue.findByIdAndUpdate(id, { status }, { new: true });
+    const issue = await Issue.findByIdAndUpdate(id, { 
+      status, 
+      updatedBy: req.user ? req.user.userId : null 
+    }, { new: true });
 
     if (!issue) {
       return res.status(404).json({ error: 'Issue not found' });
@@ -198,4 +236,40 @@ async function getHeatmapData(req, res) {
   }
 }
 
-module.exports = { createIssue, getAllIssues, updateIssueStatus, getHeatmapData };
+async function getMyIssues(req, res) {
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const issues = await Issue.find({ createdBy: req.user.userId }).sort({ createdAt: -1 });
+    return res.json({ issues, total: issues.length });
+  } catch (error) {
+    console.error('❌ getMyIssues error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getDashboard(req, res) {
+  try {
+    const issues = await Issue.find({ duplicateOf: null }, 'title tags status priority category latitude longitude createdAt').sort({ createdAt: -1 });
+    
+    // Extract unique tags
+    const allTags = new Set();
+    issues.forEach(issue => {
+      if (issue.tags && issue.tags.length > 0) {
+        issue.tags.forEach(tag => allTags.add(tag));
+      }
+    });
+
+    return res.json({ 
+      issues, 
+      tags: Array.from(allTags),
+      total: issues.length 
+    });
+  } catch (error) {
+    console.error('❌ getDashboard error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { createIssue, getAllIssues, updateIssueStatus, getHeatmapData, getMyIssues, getDashboard };

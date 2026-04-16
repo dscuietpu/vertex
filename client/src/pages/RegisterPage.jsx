@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -12,7 +12,7 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,31 +47,37 @@ export default function RegisterPage() {
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.fullName,
+          email: form.email,
+          password: form.password,
+          role: 'Citizen',
+          profileDetails: {
+            phone: form.phone,
+            address: form.address
+          }
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      // Redirect directly to profile — token is already stored
+      navigate('/profile', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      setSuccess(true);
-    }, 1500);
+    }
   };
 
-  if (success) {
-    return (
-      <div className="auth-page auth-page--center">
-        <div className="auth-success-card">
-          <div className="auth-success-icon">🎉</div>
-          <h2 className="auth-success-title">Account Created!</h2>
-          <p className="auth-success-text">
-            Welcome to CivicAI! Your account has been successfully created. You can now log in and start reporting civic issues.
-          </p>
-          <Link to="/login/citizen" className="auth-submit-btn auth-submit-btn--citizen" id="goto-login-btn">
-            🔑 Go to Login
-          </Link>
-          <Link to="/" className="auth-back" style={{ display: 'block', marginTop: '1rem', textAlign: 'center' }}>
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // (success screen removed — navigate() sends user straight to /profile)
 
   const passwordStrength = () => {
     if (!form.password) return null;

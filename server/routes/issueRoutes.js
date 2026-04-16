@@ -1,7 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { createIssue, getAllIssues, updateIssueStatus, getHeatmapData } = require('../controllers/issueController');
+const { createIssue, getAllIssues, updateIssueStatus, getHeatmapData, getMyIssues } = require('../controllers/issueController');
+const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -33,11 +34,34 @@ const upload = multer({
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-// NOTE: /heatmap must be defined BEFORE /:id to avoid route conflict
+// Public GET routes (map visible to all)
 router.get('/heatmap', getHeatmapData);
 router.get('/', getAllIssues);
-router.post('/', upload.single('image'), createIssue);
-router.put('/:id', updateIssueStatus);
+
+// Citizen only — get only their own issues (for profile page)
+router.get(
+  '/my',
+  authMiddleware,
+  roleMiddleware(['Citizen']),
+  getMyIssues
+);
+
+// Citizen only — submit a new grievance
+router.post(
+  '/',
+  authMiddleware,
+  roleMiddleware(['Citizen']),
+  upload.single('image'),
+  createIssue
+);
+
+// GOV only — advance grievance status
+router.put(
+  '/:id',
+  authMiddleware,
+  roleMiddleware(['GOV']),
+  updateIssueStatus
+);
 
 // Multer error handler
 router.use((err, req, res, next) => {
