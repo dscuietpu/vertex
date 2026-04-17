@@ -117,10 +117,17 @@ async function analyseWithGroq(imagePath) {
   const token = process.env.GROQ_API_KEY;
   if (!token) throw new Error('No Groq API key configured');
 
-  const imageBuffer = fs.readFileSync(imagePath);
-  const base64Image = imageBuffer.toString('base64');
-  const ext = path.extname(imagePath).toLowerCase();
-  const mimeType = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
+  let imageUrl;
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    imageUrl = imagePath;
+  } else {
+    // Fallback for local files if any are still used
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+    const ext = path.extname(imagePath).toLowerCase();
+    const mimeType = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
+    imageUrl = `data:${mimeType};base64,${base64Image}`;
+  }
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -136,7 +143,7 @@ async function analyseWithGroq(imagePath) {
           content: [
             {
               type: 'image_url',
-              image_url: { url: `data:${mimeType};base64,${base64Image}` },
+              image_url: { url: imageUrl },
             },
             {
               type: 'text',

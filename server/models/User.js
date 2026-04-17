@@ -19,6 +19,13 @@ const userSchema = new mongoose.Schema({
     enum: ['Citizen', 'GOV'],
     default: 'Citizen',
   },
+  // Permanent unique Citizen ID — generated at registration, never changes
+  citizenId: {
+    type: String,
+    unique: true,
+    sparse: true,   // allows null for GOV accounts (sparse = nulls are not indexed)
+    default: null,
+  },
   profileDetails: {
     type: mongoose.Schema.Types.Mixed,
     default: {},
@@ -32,3 +39,4 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('User', userSchema);
+

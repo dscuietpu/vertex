@@ -1,20 +1,25 @@
 const express = require('express');
 const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const path = require('path');
 const { createIssue, getAllIssues, updateIssueStatus, getHeatmapData, getMyIssues } = require('../controllers/issueController');
 const { authMiddleware, roleMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// ─── Multer Configuration ─────────────────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.originalname);
-    cb(null, `issue-${uniqueSuffix}${ext}`);
+// ─── Cloudinary & Multer Configuration ────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'civicai_issues',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
   },
 });
 

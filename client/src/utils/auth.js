@@ -43,10 +43,16 @@ export function clearAuth() {
 }
 
 /**
- * Generates a deterministic Citizen ID from a MongoDB ObjectId string.
- * Format: CID-XXXXXX (last 6 hex chars, uppercased).
+ * Returns the Citizen ID for display.
+ * - New accounts: uses the real `citizenId` stored in MongoDB (e.g. "CIV-3FA2B8C1")
+ * - Legacy accounts (before this feature): falls back to deriving from MongoDB _id
+ *
+ * @param {string} mongoId   - the user's MongoDB _id (always available)
+ * @param {string} citizenId - the stored citizenId field (available for new accounts)
  */
-export function formatCitizenId(mongoId = '') {
+export function formatCitizenId(mongoId = '', citizenId = '') {
+  if (citizenId) return citizenId;
+  // Legacy fallback: derive from _id
   return `CID-${mongoId.slice(-6).toUpperCase()}`;
 }
 

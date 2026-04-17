@@ -1,14 +1,16 @@
-import { useState, useRef, useCallback } from 'react';
-import { Camera, MapPin, Send, AlertTriangle, CheckCircle2, X } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Camera, MapPin, Send, AlertTriangle, CheckCircle2, X, Loader2, Navigation } from 'lucide-react';
 import { submitIssue } from '../utils/api';
 import Spinner from '../components/Spinner';
+import LocationName from '../components/LocationName';
 
 const MAX_FILE_SIZE_MB = 10;
 
 export default function UploadPage() {
-  const [image, setImage] = useState(null);       // File object
-  const [preview, setPreview] = useState(null);   // Object URL for preview
-  const [location, setLocation] = useState(null); // { latitude, longitude }
+  const [image, setImage] = useState(null);          // File object
+  const [preview, setPreview] = useState(null);      // Object URL for preview
+  const [location, setLocation] = useState(null);    // { latitude, longitude, accuracy }
+  const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
@@ -19,25 +21,33 @@ export default function UploadPage() {
   const fileInputRef = useRef(null);
 
   // ── Geolocation ────────────────────────────────────────────────────────────
-  const captureLocation = () => {
+  const captureLocation = useCallback(() => {
     setLocationError('');
+    setLocationLoading(true);
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser.');
+      setLocationLoading(false);
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocation({
-          latitude: pos.coords.latitude,
+          latitude:  pos.coords.latitude,
           longitude: pos.coords.longitude,
+          accuracy:  Math.round(pos.coords.accuracy), // metres
         });
+        setLocationLoading(false);
       },
       () => {
-        setLocationError('Unable to retrieve location. Please allow location access.');
+        setLocationError('Unable to retrieve your GPS location. Please allow location access and try again.');
+        setLocationLoading(false);
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
-  };
+  }, []);
+
+  // Auto-capture GPS when the page loads
+  useEffect(() => { captureLocation(); }, [captureLocation]);
 
   // ── Image Handling ─────────────────────────────────────────────────────────
   const handleFile = useCallback((file) => {
@@ -122,6 +132,12 @@ export default function UploadPage() {
           <p className="text-sm"><span className="font-semibold text-slate-600">Description:</span> {result.issue?.description}</p>
           <p className="text-sm"><span className="font-semibold text-slate-600">Priority:</span> {result.issue?.priority}</p>
           <p className="text-sm"><span className="font-semibold text-slate-600">Status:</span> {result.issue?.status}</p>
+          {result.issue?.latitude && result.issue?.longitude && (
+            <p className="text-sm">
+              <span className="font-semibold text-slate-600">Location:</span>{' '}
+              <LocationName lat={result.issue.latitude} lng={result.issue.longitude} prefix="" className="inline" />
+            </p>
+          )}
           <p className="text-sm">
             <span className="font-semibold text-slate-600">Times Reported:</span>{' '}
             <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-md border border-slate-200">
@@ -236,41 +252,80 @@ export default function UploadPage() {
 
         {/* ── Location ── */}
         <div className="p-6 border-b border-slate-100">
-          <h2 className="flex items-center gap-2 font-semibold text-slate-800 mb-4 tracking-tight">
-            <MapPin className="w-5 h-5 text-slate-400" />
-            Location Data
+          <h2 className="flex items-center gap-2 font-semibold text-slate-800 mb-1 tracking-tight">
+            <Navigation className="w-5 h-5 text-blue-500" />
+            Live GPS Location
           </h2>
-          {location ? (
-            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-4">
+          <p className="text-xs text-slate-400 mb-4">Automatically detected from your device — no address entry needed.</p>
+
+          {locationLoading ? (
+            <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <Loader2 className="w-5 h-5 text-blue-500 animate-spin flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-green-700">Location captured ✓</p>
-                <p className="text-xs text-green-500 mt-0.5">
-                  {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
-                </p>
+                <p className="text-sm font-medium text-blue-700">Acquiring GPS signal…</p>
+                <p className="text-xs text-blue-400 mt-0.5">Please allow location access if prompted.</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setLocation(null)}
-                className="text-xs text-green-600 hover:text-red-500 transition"
-              >
-                Clear
-              </button>
+            </div>
+          ) : location ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                  </span>
+                  <p className="text-sm font-semibold text-green-700">GPS Lock Acquired ✓</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={captureLocation}
+                  className="text-xs text-green-600 hover:text-blue-600 font-medium transition flex items-center gap-1"
+                >
+                  <Navigation className="w-3 h-3" /> Refresh
+                </button>
+              </div>
+
+              {/* Human-readable place name — prominent */}
+              <div className="bg-white rounded-lg px-3 py-2.5 border border-green-100">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Detected Location</p>
+                <LocationName
+                  lat={location.latitude}
+                  lng={location.longitude}
+                  prefix=""
+                  className="text-sm font-medium text-slate-800 block"
+                />
+              </div>
+
+              {/* Raw coords — small technical detail */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-green-600 font-mono">{location.latitude.toFixed(5)}°, {location.longitude.toFixed(5)}°</span>
+                {location.accuracy && (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    ±{location.accuracy} m
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <button
               type="button"
               onClick={captureLocation}
-              className="w-full border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl p-4 text-center transition hover:bg-blue-50"
+              className="w-full border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-xl p-5 text-center transition hover:bg-blue-50 group"
             >
-              <MapPin className="w-8 h-8 mx-auto text-slate-300 mb-2 group-hover:text-blue-500 transition-colors" />
-              <p className="font-medium text-slate-700">Fetch precise coordinates</p>
-              <p className="text-xs text-slate-500 mt-1">We need location access to direct field teams</p>
+              <Navigation className="w-8 h-8 mx-auto text-slate-300 mb-2 group-hover:text-blue-500 transition-colors" />
+              <p className="font-medium text-slate-700">Tap to get your GPS coordinates</p>
+              <p className="text-xs text-slate-500 mt-1">We need location access to direct field teams precisely</p>
             </button>
           )}
           {locationError && (
-            <p className="text-red-500 text-sm mt-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" /> {locationError}
-            </p>
+            <div className="mt-3 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3">
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <div>
+                <p>{locationError}</p>
+                <button onClick={captureLocation} className="text-xs font-semibold underline mt-1 hover:text-red-700">Try again</button>
+              </div>
+            </div>
           )}
         </div>
 

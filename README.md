@@ -1,168 +1,60 @@
-# 🏙️ CivicAI — Smart City Issue Reporting Platform
+# 🏙️ CivicAI — Intelligent Urban Grievance Platform
 
-An AI-powered civic issue reporting system. Upload a photo of a civic problem → AI generates a description → duplicate detection runs → priority is classified → issue appears on a map.
-
-**100% free to run. No paid API key required.**
+**CivicAI** is an AI-powered smart city platform designed to bridge the gap between citizens and authorities. By combining real-time GPS tracking, vision AI, and automated grievance clustering, CivicAI transforms how urban infrastructure issues are reported, managed, and resolved.
 
 ---
 
-## ✨ Features
+## 🌟 Our Vision
 
-| Feature | Description |
-|---|---|
-| 📸 Image Upload | Drag-and-drop upload with GPS auto-capture |
-| 🤖 AI Description | Free HuggingFace BLIP vision model OR built-in smart mock |
-| 🔁 Duplicate Detection | String similarity + Haversine distance — no duplicates |
-| ⚡ Priority Classification | Keyword-based High / Medium / Low scoring |
-| 🗺️ Map View | Leaflet.js map with Red/Orange/Green markers |
-| 🔥 Heatmap | Density heatmap toggle showing complaint hotspots |
-| ⚙️ Admin Dashboard | Search, filter, and update issue status |
+To build a **smarter, more responsive city** by creating a completely frictionless reporting channel. We believe that maintaining urban infrastructure shouldn't require citizens to navigate complex bureaucracy or manually classify problems. With CivicAI, a single photograph is all it takes for the system to automatically analyze the problem, determine its severity, pinpoint the exact location, and route it to the appropriate authority. 
 
 ---
 
-## 🆓 Free AI Options
+## ✨ Key Features
 
-The project ships with **two modes** — no paid API key ever needed:
+### 👥 Role-Based Portals
+- **Citizen Dashboard:** A dedicated space for users to track their reported issues, track resolution timelines, and view updates. Each citizen is assigned a unique `CIV-XXXXXXXX` identification number upon registration.
+- **Authority (GOV) Dashboard:** A comprehensive, secure admin portal for municipal workers to filter, track, and update the status of civic issues across the city.
 
-### Option A — Built-in Smart Mock (zero setup)
-Works out of the box with no configuration. Generates realistic civic descriptions based on image filenames and a curated description bank. Perfect for demos and hackathons.
+### 🤖 AI-Powered Analysis (Groq LLaMA 4 Vision)
+- The platform automatically processes uploaded images via highly capable Vision language models.
+- **Spam Filtering:** Automatically determines if an image is a valid civic issue and rejects irrelevant, harmless, or meme submissions.
+- **Smart Categorization:** Generates precise descriptions and automatically categorizes the grievance (e.g., Road & Traffic, Sanitation, Electricity).
+- **Auto-Prioritization:** AI assigns a severity score (High, Medium, Low) based on public safety risk (loss of life, infrastructural damage, public nuisance).
 
-### Option B — HuggingFace BLIP Vision (free, 2-minute setup)
-Uses the `Salesforce/blip-image-captioning-large` model for real image analysis.
+### 📍 Location Intelligence
+- **Frictionless GPS Capture:** Location is pulled directly from the device to ensure absolute accuracy—no typing addresses required.
+- **Reverse Geocoding:** Raw coordinates are seamlessly translated into human-readable locations (e.g., "Market Road, Sector 25 West") using OpenStreetMap Nominatim with caching to preserve bandwidth.
 
-**Get your free HuggingFace token:**
-1. Sign up at **https://huggingface.co/join** (no credit card)
-2. Go to **https://huggingface.co/settings/tokens**
-3. Click **New token → Role: Read → Create**
-4. Copy it into `server/.env` as `HUGGINGFACE_API_KEY=hf_xxxxx`
+### 🔁 Smart Duplicate Clustering
+- Prevents database littering by utilizing string-similarity combined with mathematical Haversine distance calculations.
+- If multiple citizens report the same issue, the system groups them together as linked duplicates, keeping the UI clean while incrementing the report count to alert authorities of widespread problems.
 
-Free tier includes ~30,000 API characters/month, resets monthly.
+### 🗺️ Visual Dashboards
+- **Interactive Map:** A real-time Leaflet.js map plotting all active issues using color-coded markers based on priority.
+- **Heatmaps:** Identifies hotspots of complaints, helping authorities view density data and plan broader infrastructural maintenance.
 
----
-
-## 🗂️ Folder Structure
-
-```
-civicai/
-├── client/                        # React + Vite frontend
-│   └── src/
-│       ├── pages/
-│       │   ├── UploadPage.jsx     # Image upload + GPS form
-│       │   ├── MapPage.jsx        # Leaflet map + heatmap
-│       │   └── AdminPage.jsx      # Admin dashboard
-│       ├── components/
-│       │   ├── Navbar.jsx
-│       │   ├── Spinner.jsx
-│       │   ├── PriorityBadge.jsx
-│       │   └── StatusBadge.jsx
-│       └── utils/api.js           # All API calls
-│
-└── server/                        # Node.js + Express backend
-    ├── models/Issue.js            # Mongoose schema
-    ├── routes/issueRoutes.js      # Routes + Multer upload
-    ├── controllers/issueController.js
-    └── utils/
-        ├── aiDescriptionGenerator.js  # HuggingFace + smart mock
-        ├── duplicateDetector.js       # Similarity + distance
-        ├── priorityClassifier.js      # Keyword scoring
-        └── seedData.js                # 20 sample issues
-```
+### ☁️ Cloud Infrastructure
+- Seamless, fast multimedia handling with **Cloudinary** for secure, persistent image hosting and delivery.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Tech Stack
 
-### 1. Install dependencies
+**Frontend:**
+- React 18 & Vite
+- Tailwind CSS (Modern, premium interface design)
+- React Router v6
+- Leaflet.js / React-Leaflet
+- Lucide React Icons
 
-```bash
-cd server && npm install
-cd ../client && npm install
-```
-
-### 2. Configure environment
-
-```bash
-cd server
-cp .env.example .env
-```
-
-Edit `server/.env`:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/civicai
-CLIENT_URL=http://localhost:5173
-
-# Optional — leave blank for smart mock mode
-# Get free token at: https://huggingface.co/settings/tokens
-HUGGINGFACE_API_KEY=
-```
-
-### 3. Seed sample data (optional)
-
-```bash
-cd server && npm run seed
-```
-
-### 4. Start both servers
-
-```bash
-# Terminal 1 — backend
-cd server && npm run dev
-
-# Terminal 2 — frontend
-cd client && npm run dev
-```
-
-### 5. Open in browser
-
-| URL | Page |
-|---|---|
-| http://localhost:5173/report | Report an issue |
-| http://localhost:5173/map | Map view |
-| http://localhost:5173/admin | Admin dashboard |
+**Backend:**
+- Node.js & Express.js
+- MongoDB & Mongoose (Role-based schema, Geo-location structures)
+- Cloudinary & Multer (Storage handling)
+- JWT Auth & Bcrypt (Security and session management)
+- Groq API (Inference for LLaMA 4 Vision models)
 
 ---
 
-## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/issues` | Upload image + location |
-| `GET` | `/api/issues` | Fetch all (supports `?search=&priority=&status=`) |
-| `PUT` | `/api/issues/:id` | Update status |
-| `GET` | `/api/issues/heatmap` | Coordinate data for heatmap |
-| `GET` | `/api/health` | Server health check |
-
----
-
-## 🤖 AI Pipeline
-
-```
-User uploads image
-       ↓
-Multer saves to /uploads
-       ↓
-generateDescription(imagePath)
-  ├── HuggingFace BLIP (if token set) → real vision caption
-  └── Smart mock fallback             → keyword-based description
-       ↓
-checkDuplicate(description, lat, lng)
-  → string-similarity + Haversine distance
-       ↓
-classifyPriority(description)
-  → keyword scoring: High / Medium / Low
-       ↓
-Save to MongoDB
-```
-
----
-
-## 🛠️ Tech Stack
-
-**Frontend:** React 18, Vite, Tailwind CSS, React Router v6, React-Leaflet, Axios
-
-**Backend:** Node.js, Express, Multer, Mongoose, string-similarity
-
-**Database:** MongoDB
-
-**AI (free):** HuggingFace BLIP or built-in smart mock — no Anthropic/OpenAI key needed

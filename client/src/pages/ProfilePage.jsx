@@ -175,8 +175,8 @@ export default function ProfilePage() {
 
   // ─── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    clearAuth();
-    navigate('/login/citizen', { replace: true });
+    logout();
+    navigate('/', { replace: true });
   };
 
   // ─── Account Settings Handlers ─────────────────────────────────────────────
@@ -642,7 +642,7 @@ function buildProfile(user) {
     address:          user.profileDetails?.address || '',
     notifications:    user.profileDetails?.notifications !== false,
     registrationDate: user.createdAt || new Date().toISOString(),
-    citizenId:        formatCitizenId(user.id || user._id || ''),
+    citizenId:        formatCitizenId(user.id || user._id || '', user.citizenId || ''),
     avatarUrl:        avatarUrl(user.name || 'User'),
   };
 }

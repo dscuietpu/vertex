@@ -1,12 +1,28 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt    = require('jsonwebtoken');
+const crypto = require('crypto');
+const User   = require('../models/User');
+
+// ─── Citizen ID Generator ─────────────────────────────────────────────────────
+/**
+ * Generates a unique Citizen ID in the format CIV-XXXXXXXX
+ * (8 random uppercase hex characters = 4 294 967 296 possible values).
+ * Retries if a collision occurs (extremely rare).
+ */
+async function generateCitizenId() {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const id = 'CIV-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const exists = await User.findOne({ citizenId: id }).select('_id').lean();
+    if (!exists) return id;
+  }
+  // Fallback: use timestamp + random — guaranteed unique
+  return 'CIV-' + Date.now().toString(36).toUpperCase() + crypto.randomBytes(2).toString('hex').toUpperCase();
+}
 
 const register = async (req, res) => {
   try {
     const { name, email, password, role, profileDetails } = req.body;
 
-    // By default, role is 'Citizen' unless specified otherwise. We might only allow Citizens to register this way, but let's be flexible
     const allowedRole = role === 'GOV' ? 'GOV' : 'Citizen';
 
     const existingUser = await User.findOne({ email });
@@ -16,15 +32,20 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate a unique Citizen ID only for Citizen accounts
+    const citizenId = allowedRole === 'Citizen' ? await generateCitizenId() : null;
+
     const user = new User({
       name,
       email,
       password: hashedPassword,
       role: allowedRole,
+      citizenId,
       profileDetails: profileDetails || {},
     });
 
     await user.save();
+    console.log(`✅ New citizen registered: ${user.email} | ID: ${citizenId}`);
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
@@ -36,10 +57,11 @@ const register = async (req, res) => {
       message: 'User registered successfully',
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id:             user._id,
+        name:           user.name,
+        email:          user.email,
+        role:           user.role,
+        citizenId:      user.citizenId,
         profileDetails: user.profileDetails,
       },
     });
@@ -73,10 +95,11 @@ const login = async (req, res) => {
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id:             user._id,
+        name:           user.name,
+        email:          user.email,
+        role:           user.role,
+        citizenId:      user.citizenId || null,
         profileDetails: user.profileDetails,
         profilePicture: user.profilePicture || '',
       },

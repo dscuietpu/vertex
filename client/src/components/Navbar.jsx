@@ -15,7 +15,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate(isGov ? '/login/authority' : '/login/citizen', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (
@@ -24,7 +24,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to={isGov ? '/admin' : '/'} className="flex items-center gap-2 group">
+          <Link
+            to={isGov ? '/admin' : isCitizen ? '/dashboard' : '/'}
+            className="flex items-center gap-2 group"
+          >
             <div className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center group-hover:bg-blue-700 transition-colors">
               <Building2 className="w-5 h-5" />
             </div>
@@ -42,21 +45,36 @@ export default function Navbar() {
           {/* Nav links — role-aware */}
           <div className="flex items-center gap-2">
 
-            {/* GOV: Map View only */}
+            {/* GOV: Dashboard + Map View */}
             {isGov && (
-              <NavLink
-                to="/map"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`
-                }
-              >
-                <Map className="w-4 h-4" />
-                <span className="hidden sm:inline">Map View</span>
-              </NavLink>
+              <>
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`
+                  }
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </NavLink>
+                <NavLink
+                  to="/map"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`
+                  }
+                >
+                  <Map className="w-4 h-4" />
+                  <span className="hidden sm:inline">Map View</span>
+                </NavLink>
+              </>
             )}
 
             {/* Citizen: Report Issue + Map View */}

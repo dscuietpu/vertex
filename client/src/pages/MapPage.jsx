@@ -5,6 +5,7 @@ import { fetchIssues, fetchHeatmapData } from '../utils/api';
 import Spinner from '../components/Spinner';
 import PriorityBadge from '../components/PriorityBadge';
 import StatusBadge from '../components/StatusBadge';
+import LocationName from '../components/LocationName';
 import { Map as MapIcon, Flame, MapPinOff, Layers } from 'lucide-react';
 
 // ── Custom colored markers ────────────────────────────────────────────────────
@@ -237,6 +238,7 @@ export default function MapPage() {
                       )}
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
+                      <LocationName lat={issue.latitude} lng={issue.longitude} className="block mb-0.5" />
                       {new Date(issue.createdAt).toLocaleDateString()}
                     </p>
                   </div>

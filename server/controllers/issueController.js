@@ -29,9 +29,9 @@ async function createIssue(req, res) {
       return res.status(400).json({ error: 'Invalid coordinates provided' });
     }
 
-    // Build image URL (relative path served statically)
-    const imageUrl = `/uploads/${req.file.filename}`;
-    const imagePath = path.join(__dirname, '..', 'uploads', req.file.filename);
+    // Cloudinary returns the secure image URL in req.file.path
+    const imageUrl = req.file.path;
+    const imagePath = req.file.path;
 
     // 1. Generate AI description, priority, and category via single LLaMA 4 call
     console.log('🤖 Generating AI analysis...');
@@ -146,14 +146,14 @@ async function getAllIssues(req, res) {
 
     const issues = await Issue.find(filter)
       .sort({ reportCount: -1, createdAt: -1 })
-      .populate('createdBy', 'name email profileDetails');
+      .populate('createdBy', 'name email citizenId profileDetails');
 
     // ── Fetch all duplicate records linked to these originals ──────────────────
     const originalIds = issues.map(i => i._id);
     const duplicates  = await Issue.find(
       { duplicateOf: { $in: originalIds } },
       'duplicateOf createdBy'
-    ).populate('createdBy', 'name email profileDetails');
+    ).populate('createdBy', 'name email citizenId profileDetails');
 
     // Build map: originalId → [extra reporters]
     const dupReportersMap = {};

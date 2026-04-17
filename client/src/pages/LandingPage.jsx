@@ -257,7 +257,7 @@ export default function LandingPage() {
             </p>
             <div className="landing-hero__actions">
               <Link to="/login/citizen" className="landing-btn landing-btn--secondary">
-                <span>🔑</span> Login
+                <span>🔑</span> Register
               </Link>
             </div>
             <div className="landing-hero__trust">

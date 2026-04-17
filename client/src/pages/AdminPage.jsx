@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { fetchIssues, updateIssueStatus } from '../utils/api';
 import { formatCitizenId } from '../utils/auth';
 import Spinner from '../components/Spinner';
+import LocationName from '../components/LocationName';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const STATUS_FLOW   = ['Pending', 'In Progress', 'Resolved'];
@@ -91,7 +92,7 @@ function CitizenModal({ issue, onClose }) {
                 <div>
                   <div className="font-semibold text-slate-900 text-sm">{citizen?.name || 'Unknown'}</div>
                   <span className="font-mono text-xs bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-500">
-                    {formatCitizenId(citizen?._id || '')}
+                    {formatCitizenId(citizen?._id || '', citizen?.citizenId || '')}
                   </span>
                   {idx === 0 && (
                     <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">Original Reporter</span>
@@ -229,9 +230,9 @@ function IssueCard({ issue, onAdvance, isUpdating, onViewCitizen }) {
         </div>
 
         {/* Meta */}
-        <div className="text-xs text-slate-400">
-          📍 {issue.latitude?.toFixed(3)}, {issue.longitude?.toFixed(3)} ·{' '}
-          🗓️ {new Date(issue.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        <div className="flex flex-col gap-0.5 text-xs text-slate-400">
+          <LocationName lat={issue.latitude} lng={issue.longitude} className="truncate max-w-full" />
+          <span>🗓️ {new Date(issue.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
         </div>
 
         {/* Action */}
@@ -332,7 +333,7 @@ function ResolvedCard({ issue, onViewCitizen }) {
 
         {/* Location */}
         <div className="text-xs text-slate-400">
-          📍 {issue.latitude?.toFixed(4)}, {issue.longitude?.toFixed(4)}
+          <LocationName lat={issue.latitude} lng={issue.longitude} />
         </div>
       </div>
     </div>
@@ -409,7 +410,7 @@ function IssueMap({ issues }) {
                 weight: 2,
               }}
             >
-              <Popup maxWidth={260}>
+              <Popup maxWidth={280}>
                 <div className="text-sm space-y-1 py-1">
                   <div className="font-bold text-slate-900">{issue.title || 'Civic Issue'}</div>
                   <div className="text-slate-500">{CATEGORY_MAP[issue.category]?.icon} {issue.category}</div>
@@ -419,12 +420,13 @@ function IssueMap({ issues }) {
                       {issue.status}
                     </span>
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-400 mt-1">
+                    <LocationName lat={issue.latitude} lng={issue.longitude} className="block" />
                     🗓️ {new Date(issue.createdAt).toLocaleDateString()}
                   </div>
                   {issue.createdBy && (
                     <div className="text-xs text-slate-500 border-t border-slate-100 pt-1 mt-1">
-                      👤 {issue.createdBy.name || 'Citizen'} · {formatCitizenId(issue.createdBy._id || '')}
+                      👤 {issue.createdBy.name || 'Citizen'} · {formatCitizenId(issue.createdBy._id || '', issue.createdBy.citizenId || '')}
                     </div>
                   )}
                 </div>

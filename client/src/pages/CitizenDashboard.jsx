@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { fetchIssues } from '../utils/api';
 import Spinner from '../components/Spinner';
+import LocationName from '../components/LocationName';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const CATEGORY_MAP = {
@@ -98,8 +99,8 @@ function IssueCard({ issue }) {
 
         {/* Meta */}
         <div className="pt-1 border-t border-slate-100 flex flex-col gap-1">
-          <div className="text-xs text-slate-400 flex items-center gap-1">
-            📍 {issue.latitude?.toFixed(4)}, {issue.longitude?.toFixed(4)}
+          <div className="text-xs text-slate-400">
+            <LocationName lat={issue.latitude} lng={issue.longitude} />
           </div>
           <div className="text-xs text-slate-400 flex items-center gap-1">
             🗓️ {new Date(issue.createdAt).toLocaleDateString('en-IN', {
@@ -159,7 +160,7 @@ function IssueMap({ issues }) {
                 weight: 2,
               }}
             >
-              <Popup maxWidth={220}>
+              <Popup maxWidth={240}>
                 <div className="text-sm space-y-1 py-1">
                   <div className="font-bold text-slate-900">{issue.title || 'Civic Issue'}</div>
                   <div className="text-xs text-slate-500">{CATEGORY_MAP[issue.category]?.icon} {issue.category}</div>
@@ -169,6 +170,7 @@ function IssueMap({ issues }) {
                       {issue.status}
                     </span>
                   </div>
+                  <LocationName lat={issue.latitude} lng={issue.longitude} className="text-xs text-slate-400 block mt-1" />
                 </div>
               </Popup>
             </CircleMarker>
